@@ -71,6 +71,16 @@ namespace ExpenseSplitterAPI.Services
             return tokenHandler.WriteToken(token);
         }
 
+        public async Task<User> GetUserById(int userId)
+        {
+            return await _context.Users.FindAsync(userId);
+        }
+
+        public async Task UpdateUser(User user)
+        {
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+        }
 
 
 
