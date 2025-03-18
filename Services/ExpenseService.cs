@@ -13,7 +13,7 @@ namespace ExpenseSplitterAPI.Services
     public class ExpenseService
     {
         private readonly AppDbContext _context;
-        private readonly WebSocketManager _webSocketManager; // ✅ WebSocket Manager
+        private readonly WebSocketManager _webSocketManager;
 
         public ExpenseService(AppDbContext context, WebSocketManager webSocketManager)
         {
@@ -21,27 +21,32 @@ namespace ExpenseSplitterAPI.Services
             _webSocketManager = webSocketManager ?? throw new ArgumentNullException(nameof(webSocketManager));
         }
 
+        // ✅ Fetch Balance Between Two Users in a Group
+        public async Task<Debt> GetBalanceBetweenUsersAsync(int debtorId, int creditorId, int groupId)
+        {
+            return await _context.Debts
+                .FirstOrDefaultAsync(d => d.OwedByUserId == debtorId && d.OwedToUserId == creditorId && d.GroupId == groupId);
+        }
+
         private async Task RecalculateBalancesAsync(int groupId)
         {
-            Console.WriteLine($"🔄 Recalculating balances for group {groupId}...");
+            Console.WriteLine($"🔄 Recalculating balances for Group {groupId}...");
 
-            var updatedBalances = await GetGroupBalancesAsync(groupId); // 🔥 Ensure fresh balance update
-            Console.WriteLine($"✅ Updated balances after settlement: {updatedBalances.Count} records.");
+            // ✅ Instead of deleting all debts, only delete debts that are fully paid (Amount <= 0)
+            await _context.Debts
+                .Where(d => d.GroupId == groupId && d.Amount <= 0)
+                .ExecuteDeleteAsync(); // ✅ Deletes only fully settled debts
 
-            // 🔥 Send real-time update to the frontend
-            await _webSocketManager.BroadcastAsync($"balance_updated:{groupId}");
+            Console.WriteLine($"✅ Balances recalculated successfully for Group {groupId}!");
         }
 
 
-
-
-        // ✅ Add Expense to a Group (With WebSocket Notification)
+        // ✅ Add Expense (With WebSocket Notification)
         public async Task<Expense> AddExpenseAsync(int groupId, int userId, string description, decimal amount)
         {
-            // ✅ Ensure the group exists
             var groupExists = await _context.Groups.AnyAsync(g => g.GroupId == groupId);
             if (!groupExists)
-                throw new Exception($"Group with ID {groupId} does not exist."); // Better debugging
+                throw new Exception($"Group with ID {groupId} does not exist.");
 
             var expense = new Expense
             {
@@ -51,53 +56,50 @@ namespace ExpenseSplitterAPI.Services
                 Amount = amount
             };
 
-            // ✅ Save expense first
             _context.Expenses.Add(expense);
-            await _context.SaveChangesAsync(); // Ensure expense ID is generated
+            await _context.SaveChangesAsync();
 
-            // ✅ Fetch all group members
-            var groupMembers = await _context.UserGroups
+            var participants = await _context.UserGroups
                 .Where(ug => ug.GroupId == groupId)
                 .Select(ug => ug.UserId)
                 .ToListAsync();
 
-            // ✅ Insert expense participants safely
-            foreach (var memberId in groupMembers)
+            if (participants.Count <= 1)
             {
-                if (!await _context.Users.AnyAsync(u => u.UserId == memberId)) // Check user exists
+                Console.WriteLine($"⚠️ Not enough users in Group {groupId} to split the expense.");
+                return expense;
+            }
+
+            decimal share = amount / participants.Count;
+
+            foreach (var participant in participants)
+            {
+                if (participant == userId) continue;
+
+                var existingDebt = await _context.Debts
+                    .FirstOrDefaultAsync(d => d.OwedByUserId == participant && d.OwedToUserId == userId && d.GroupId == groupId);
+
+                if (existingDebt != null)
                 {
-                    Console.WriteLine($"⚠️ Skipping non-existent UserId: {memberId}");
-                    continue;
+                    // ✅ Update the existing debt amount instead of creating a duplicate
+                    existingDebt.Amount += share;
                 }
-
-                _context.ExpenseParticipants.Add(new ExpenseParticipant
+                else
                 {
-                    ExpenseId = expense.Id, // Now guaranteed to be valid
-                    UserId = memberId
-                });
-            }
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException ex)
-            {
-                Console.WriteLine($"❌ DbUpdateException: {ex.Message}");
-                if (ex.InnerException != null)
-                {
-                    Console.WriteLine($"🔍 Inner Exception: {ex.InnerException.Message}");
+                    // ✅ Insert new debt only if it doesn’t already exist
+                    _context.Debts.Add(new Debt
+                    {
+                        OwedByUserId = participant,
+                        OwedToUserId = userId,
+                        Amount = share,
+                        GroupId = groupId
+                    });
                 }
-                throw; // Re-throw the exception for further debugging
             }
 
-            // ✅ **Trigger balance update after expense is added**
-            Console.WriteLine($"🔄 Recalculating balances for group {groupId}");
-            await RecalculateBalancesAsync(groupId); // 🔥 **Recalculate balances after adding an expense**
+            await _context.SaveChangesAsync();
 
-            // ✅ **WebSocket Notification**
-            await _webSocketManager.BroadcastAsync($"new_expense:{groupId}");
-            await _webSocketManager.BroadcastAsync($"balance_updated:{groupId}");
+            Console.WriteLine($"✅ Expense added and balances updated for Group {groupId}.");
 
             return expense;
         }
@@ -105,12 +107,7 @@ namespace ExpenseSplitterAPI.Services
 
 
 
-
-
-
-
-
-        // ✅ Get All Expenses by Group ID (Optimized)
+        // ✅ Get Group Expenses
         public async Task<List<object>> GetExpensesByGroupIdAsync(int groupId)
         {
             var expenses = await _context.Expenses
@@ -136,106 +133,72 @@ namespace ExpenseSplitterAPI.Services
             }).ToList<object>();
         }
 
-        // ✅ Get Group Balances (With Better Formatting)
-        public async Task<Dictionary<string, Dictionary<string, decimal>>> GetGroupBalancesAsync(int groupId)
+        // ✅ Get Group Balances
+        public async Task<List<object>> GetGroupBalancesAsync(int groupId)
         {
-            var expenses = await _context.Expenses
-                .Where(e => e.GroupId == groupId)
-                .Include(e => e.PaidBy)
-                .Include(e => e.Participants)
-                .ThenInclude(ep => ep.User)
+            var debts = await _context.Debts
+                .Where(d => d.GroupId == groupId)
+                .Join(
+                    _context.Users,
+                    debt => debt.OwedByUserId,
+                    user => user.UserId,
+                    (debt, debtor) => new { debt, DebtorName = debtor.Username }
+                )
+                .Join(
+                    _context.Users,
+                    combined => combined.debt.OwedToUserId,
+                    user => user.UserId,
+                    (combined, creditor) => new
+                    {
+                        DebtorId = combined.debt.OwedByUserId,
+                        DebtorName = combined.DebtorName ?? "Unknown", // ✅ Ensures username is not null
+                        CreditorId = combined.debt.OwedToUserId,
+                        CreditorName = creditor.Username ?? "Unknown", // ✅ Ensures username is not null
+                        Amount = combined.debt.Amount // ✅ No need for `??` because Amount is already decimal
+                    }
+                )
                 .ToListAsync();
 
-            var userBalances = new Dictionary<string, decimal>();
-
-            // ✅ Step 1: Calculate total paid by each user
-            foreach (var expense in expenses)
+            if (!debts.Any())
             {
-                string payerName = expense.PaidBy?.Username ?? "Unknown";
-
-                if (!userBalances.ContainsKey(payerName))
-                    userBalances[payerName] = 0;
-
-                userBalances[payerName] += expense.Amount;
+                Console.WriteLine($"❌ No balances found for Group {groupId}.");
+                return new List<object>(); // ✅ Returns empty list instead of null
             }
 
-            // ✅ Step 2: Calculate fair share per user
-            int totalUsers = userBalances.Count;
-            decimal totalAmount = userBalances.Values.Sum();
-            decimal fairShare = totalUsers > 0 ? totalAmount / totalUsers : 0;
+            Console.WriteLine($"✅ Found {debts.Count} balances for Group {groupId}.");
 
-            foreach (var user in userBalances.Keys.ToList())
+            return debts.Select(d => (object)new
             {
-                userBalances[user] -= fairShare;
-            }
-
-            // ✅ Step 3: Compute debts & store in database
-            var finalBalances = new Dictionary<string, Dictionary<string, decimal>>();
-            var debtors = userBalances.Where(x => x.Value < 0).OrderBy(x => x.Value).ToList();
-            var creditors = userBalances.Where(x => x.Value > 0).OrderByDescending(x => x.Value).ToList();
-
-            var newDebts = new List<Debt>();
-
-            int i = 0, j = 0;
-            while (i < debtors.Count && j < creditors.Count)
-            {
-                string debtor = debtors[i].Key;
-                string creditor = creditors[j].Key;
-                decimal amount = Math.Min(-debtors[i].Value, creditors[j].Value);
-
-                if (!finalBalances.ContainsKey(debtor))
-                    finalBalances[debtor] = new Dictionary<string, decimal>();
-
-                finalBalances[debtor][creditor] = amount;
-
-                var debtorUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == debtor);
-                var creditorUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == creditor);
-
-                if (debtorUser != null && creditorUser != null)
-                {
-                    newDebts.Add(new Debt
-                    {
-                        OwedByUserId = debtorUser.UserId,
-                        OwedToUserId = creditorUser.UserId,
-                        Amount = amount,
-                        GroupId = groupId
-                    });
-                }
-
-                debtors[i] = new KeyValuePair<string, decimal>(debtor, debtors[i].Value + amount);
-                creditors[j] = new KeyValuePair<string, decimal>(creditor, creditors[j].Value - amount);
-
-                if (Math.Abs(debtors[i].Value) < 0.01m) i++;
-                if (Math.Abs(creditors[j].Value) < 0.01m) j++;
-            }
-
-            await _context.Database.ExecuteSqlRawAsync($"DELETE FROM Debts WHERE GroupId = {groupId}");
-            await _context.Debts.AddRangeAsync(newDebts); // ✅ Save debts in one go
-            await _context.SaveChangesAsync(); // ✅ Save once
-
-            return finalBalances;
+                DebtorId = d.DebtorId,
+                DebtorName = d.DebtorName,
+                CreditorId = d.CreditorId,
+                CreditorName = d.CreditorName,
+                Amount = d.Amount
+            }).ToList();
         }
 
 
 
 
-        // ✅ Settle Debt (With WebSocket Notification)
+
+
+
+        // ✅ Settle Debt Between Two Users
         public async Task<bool> SettleDebtAsync(int debtorId, int creditorId, decimal amount, int groupId)
         {
-            var existingDebt = await _context.Debts
-                .FirstOrDefaultAsync(d => d.OwedByUserId == debtorId && d.OwedToUserId == creditorId && d.GroupId == groupId);
+            var existingDebt = await GetBalanceBetweenUsersAsync(debtorId, creditorId, groupId);
 
-            if (existingDebt == null)
+            if (existingDebt == null || existingDebt.Amount < amount)
             {
-                Console.WriteLine($"❌ No outstanding debt found between {debtorId} and {creditorId}");
-                return false; // No debt to settle
+                Console.WriteLine($"❌ Settlement failed: No sufficient debt between {debtorId} and {creditorId}");
+                return false;
             }
 
             Console.WriteLine($"💰 Settling ₹{amount} from User {debtorId} to User {creditorId}. Existing Debt: ₹{existingDebt.Amount}");
 
             if (amount >= existingDebt.Amount)
             {
-                await _context.Database.ExecuteSqlRawAsync($"DELETE FROM Debts WHERE OwedByUserId = {debtorId} AND OwedToUserId = {creditorId} AND GroupId = {groupId}");
+                _context.Debts.Remove(existingDebt);
                 Console.WriteLine($"✅ Full debt of ₹{existingDebt.Amount} settled. Removing debt entry.");
 
                 if (amount > existingDebt.Amount)
@@ -258,19 +221,14 @@ namespace ExpenseSplitterAPI.Services
                 Console.WriteLine($"⚖️ Partial settlement. ₹{existingDebt.Amount} still owed after payment.");
             }
 
-            await _context.SaveChangesAsync(); // ✅ Save only once at the end
+            await _context.SaveChangesAsync();
+            await RecalculateBalancesAsync(groupId);
+            await _webSocketManager.BroadcastAsync($"balance_updated:{groupId}");
 
-            // ✅ **Ensure frontend updates**
-            await RecalculateBalancesAsync(groupId); // 🔥 Force refresh balances after settlement
-
-            await _webSocketManager.BroadcastAsync($"balance_updated:{groupId}"); // ✅ WebSocket notification
             return true;
         }
 
-
-
-
-        // ✅ WebSocket Broadcast Helper
+        // ✅ WebSocket Notification Helper
         private async Task NotifyClients(string message)
         {
             try

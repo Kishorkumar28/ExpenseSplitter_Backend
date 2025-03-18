@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using ExpenseSplitterAPI.Services;
 using ExpenseSplitterAPI.Models;
 using ExpenseSplitterApp.Services;
+using Microsoft.EntityFrameworkCore;
+using ExpenseSplitterAPI.Data;
 
 namespace ExpenseSplitterAPI.Controllers
 {
@@ -16,12 +18,36 @@ namespace ExpenseSplitterAPI.Controllers
     {
         private readonly GroupService _groupService;
         private readonly ExpenseService _expenseService; // ✅ Inject ExpenseService
+        private readonly AppDbContext _context;
 
-        public GroupsController(GroupService groupService, ExpenseService expenseService)
+        public GroupsController(GroupService groupService, ExpenseService expenseService, AppDbContext context)
         {
             _groupService = groupService;
             _expenseService = expenseService; // ✅ Assign the injected service
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
+
+        [HttpGet("{groupId}/members")]
+        public async Task<IActionResult> GetGroupMembers(int groupId)
+        {
+            var members = await _context.UserGroups
+                .Where(ug => ug.GroupId == groupId)
+            .Join(
+                    _context.Users,
+                    ug => ug.UserId,
+                    user => user.UserId,
+                    (ug, user) => new { user.UserId, user.Username }
+                )
+                .ToListAsync();
+
+            if (!members.Any())
+            {
+                return Ok(new List<object>()); // ✅ Return empty list instead of 404
+            }
+
+            return Ok(members);
+        }
+
 
         // ✅ Create Group (Proper DTO)
         [HttpPost]
@@ -102,7 +128,7 @@ namespace ExpenseSplitterAPI.Controllers
 
             if (balances == null || balances.Count == 0)
             {
-                return NotFound(new { message = "No balances found for this group." });
+                return Ok(new List<object>());
             }
 
             return Ok(balances);

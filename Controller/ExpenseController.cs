@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using ExpenseSplitterAPI.Services;
 using ExpenseSplitterAPI.Models;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging;
+
 namespace ExpenseSplitterAPI.Controllers
 {
     [Authorize]
@@ -15,15 +15,16 @@ namespace ExpenseSplitterAPI.Controllers
     public class ExpenseController : ControllerBase
     {
         private readonly ExpenseService _expenseService;
-        private readonly ExpenseSplitterAPI.Services.WebSocketManager _webSocketManager; // ✅ Explicit reference
+        private readonly ExpenseSplitterAPI.Services.WebSocketManager _webSocketManager;
         private readonly ILogger<ExpenseController> _logger;
 
         public ExpenseController(ExpenseService expenseService, ExpenseSplitterAPI.Services.WebSocketManager webSocketManager, ILogger<ExpenseController> logger)
         {
-            _expenseService = expenseService;
-            _webSocketManager = webSocketManager;
-            _logger = logger; // ✅ Inject Logger
+            _expenseService = expenseService ?? throw new ArgumentNullException(nameof(expenseService));
+            _webSocketManager = webSocketManager ?? throw new ArgumentNullException(nameof(webSocketManager)); // ✅ Correctly assign the parameter
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
 
         // ✅ Add Expense to a Group (Triggers WebSocket)
         [HttpPost]
@@ -70,42 +71,54 @@ namespace ExpenseSplitterAPI.Controllers
             return Ok(expenses);
         }
 
-        // ✅ Get Group Balances (Fixes 404)
-        //[HttpGet("balances")]
-        //public async Task<IActionResult> GetGroupBalances(int groupId)
-        //{
-        //    _logger.LogInformation($"🔍 Fetching balances for group: {groupId}");
+        // ✅ Get Group Balances
+        [HttpGet("balances")]
+        public async Task<IActionResult> GetGroupBalances(int groupId)
+        {
+            _logger.LogInformation($"🔍 Fetching balances for group: {groupId}");
 
-        //    var balances = await _expenseService.GetGroupBalancesAsync(groupId);
+            var balances = await _expenseService.GetGroupBalancesAsync(groupId);
 
-        //    if (balances == null || balances.Count == 0)
-        //    {
-        //        _logger.LogWarning($"❌ No balances found for group: {groupId}");
-        //        return NotFound(new { message = "No balances found for this group." });
-        //    }
+            if (balances == null || balances.Count == 0)
+            {
+                Console.WriteLine($"✅ No outstanding debts for Group {groupId}");
+                return Ok(new List<object>()); // ✅ Return empty list with 200 OK instead of 404
+            }
 
-        //    _logger.LogInformation($"✅ Returning balances: {balances.Count} records");
-        //    return Ok(balances);
-        //}
+            _logger.LogInformation($"✅ Returning balances: {balances.Count} records");
+            return Ok(balances);
+        }
 
+        // ✅ Settle Debt between two users in a group
         [HttpPost("settle")]
-        public async Task<IActionResult> SettleDebt(int groupId,[FromBody] SettleDebtRequest request)
+        public async Task<IActionResult> SettleDebt(int groupId, [FromBody] SettleDebtRequest request)
         {
             if (request == null || request.Amount <= 0 || request.DebtorId <= 0 || request.CreditorId <= 0)
             {
                 return BadRequest(new { message = "Invalid settlement request. Check user IDs and amount." });
             }
 
+            _logger.LogInformation($"🔄 Attempting to settle debt: {request.DebtorId} → {request.CreditorId}, Amount: {request.Amount}");
+
+            var balance = await _expenseService.GetBalanceBetweenUsersAsync(request.DebtorId, request.CreditorId, groupId);
+
+            if (balance == null || balance.Amount < request.Amount)
+            {
+                _logger.LogWarning($"❌ No outstanding debt found or insufficient balance for {request.DebtorId} → {request.CreditorId}");
+                return BadRequest(new { message = "No outstanding debt found or settlement failed." });
+            }
+
             bool success = await _expenseService.SettleDebtAsync(request.DebtorId, request.CreditorId, request.Amount, groupId);
-
-
 
             if (success)
             {
+                // 🔹 Notify WebSocket clients of balance update
+                await _webSocketManager.BroadcastAsync($"balance_updated:{groupId}");
+                _logger.LogInformation($"✅ Debt settled successfully: {request.DebtorId} → {request.CreditorId}");
                 return Ok(new { message = "Debt settled successfully!" });
             }
 
-            return BadRequest(new { message = "No outstanding debt found or settlement failed." });
+            return BadRequest(new { message = "Settlement failed due to server error." });
         }
 
         // ✅ DTO for debt settlement request
@@ -116,15 +129,11 @@ namespace ExpenseSplitterAPI.Controllers
             public decimal Amount { get; set; }
         }
 
-
-
-
-    }
-
-    // ✅ DTO for Expense Request (Fixes missing reference)
-    public class ExpenseRequest
-    {
-        public string Description { get; set; }
-        public decimal Amount { get; set; }
+        // ✅ DTO for Expense Request
+        public class ExpenseRequest
+        {
+            public string Description { get; set; }
+            public decimal Amount { get; set; }
+        }
     }
 }

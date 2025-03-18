@@ -169,3 +169,4 @@ E:\learning\ph-2\new-Capstone\ExpenseSplitterAPI\obj\Debug\net9.0\ExpenseSplitte
 E:\learning\ph-2\new-Capstone\ExpenseSplitterAPI\obj\Debug\net9.0\ExpenseSplitterAPI.genruntimeconfig.cache
 E:\learning\ph-2\new-Capstone\ExpenseSplitterAPI\obj\Debug\net9.0\ref\ExpenseSplitterAPI.dll
 E:\learning\ph-2\new-Capstone\ExpenseSplitterAPI\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
+E:\learning\ph-2\new-Capstone\ExpenseSplitterAPI\obj\Debug\net9.0\ExpenseSplitterAPI.sourcelink.json
