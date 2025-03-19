@@ -8,6 +8,8 @@ using ExpenseSplitterAPI.Models;
 using ExpenseSplitterApp.Services;
 using Microsoft.EntityFrameworkCore;
 using ExpenseSplitterAPI.Data;
+using Microsoft.AspNetCore.Http;
+using ExpenseSplitterAPI.Services;
 
 namespace ExpenseSplitterAPI.Controllers
 {
@@ -19,12 +21,14 @@ namespace ExpenseSplitterAPI.Controllers
         private readonly GroupService _groupService;
         private readonly ExpenseService _expenseService; // ✅ Inject ExpenseService
         private readonly AppDbContext _context;
+        private readonly ExpenseSplitterAPI.Services.WebSocketManager _webSocketManager;
 
-        public GroupsController(GroupService groupService, ExpenseService expenseService, AppDbContext context)
+        public GroupsController(GroupService groupService, ExpenseService expenseService, AppDbContext context, ExpenseSplitterAPI.Services.WebSocketManager webSocketManager)
         {
             _groupService = groupService;
             _expenseService = expenseService; // ✅ Assign the injected service
             _context = context ?? throw new ArgumentNullException(nameof(context));
+            _webSocketManager = webSocketManager;
         }
 
         [HttpGet("{groupId}/members")]
@@ -191,7 +195,18 @@ namespace ExpenseSplitterAPI.Controllers
 
             var success = await _groupService.InviteUserToGroup(invitingUserId, request.InvitedUserId, groupId);
 
-            return success ? Ok(new { message = "User invited successfully!" }) : BadRequest(new { message = "Invitation failed." });
+            if (success)
+            {
+                // ✅ Fetch group name from database
+                var group = await _context.Groups.FirstOrDefaultAsync(g => g.GroupId == groupId);
+                var groupName = group != null ? group.Name : "a group";
+
+                // ✅ Send WebSocket message in format: new_invitation:userId:groupName
+                await _webSocketManager.BroadcastAsync($"new_invitation:{request.InvitedUserId}:{groupName}");
+                return Ok(new { message = "User invited successfully!" });
+            }
+
+            return BadRequest(new { message = "Invitation failed." });
         }
 
         [HttpGet("invitations")]
@@ -202,10 +217,19 @@ namespace ExpenseSplitterAPI.Controllers
 
             if (!int.TryParse(userIdClaim.Value, out int userId)) return Unauthorized(new { message = "Invalid User ID." });
 
-            var invitations = await _groupService.GetUserInvitations(userId);
+            var invitations = await _context.GroupInvitations
+                .Where(inv => inv.InvitedUserId == userId && inv.Status == "Pending")
+                .Select(inv => new
+                {
+                    inviteId = inv.Id,
+                    groupId = inv.GroupId,
+                    groupName = inv.Group.Name // ✅ Ensure Group Name is returned
+                })
+                .ToListAsync();
 
             return Ok(invitations);
         }
+
 
         [HttpPost("accept/{inviteId}")]
         public async Task<IActionResult> AcceptInvitation(int inviteId)

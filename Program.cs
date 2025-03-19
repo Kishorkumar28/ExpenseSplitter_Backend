@@ -7,7 +7,6 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 // ✅ Register WebSocketManager explicitly
@@ -21,9 +20,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<GroupService>();
 builder.Services.AddScoped<ExpenseService>();
-builder.Services.AddSingleton<ExpenseSplitterAPI.Services.WebSocketManager>(); 
+
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
+
 // ✅ JWT Authentication Configuration
 var jwtKey = builder.Configuration["Jwt:Key"];
 if (string.IsNullOrEmpty(jwtKey) || jwtKey.Length < 32)

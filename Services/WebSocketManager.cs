@@ -26,6 +26,17 @@ namespace ExpenseSplitterAPI.Services
                     {
                         await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
                         _sockets.Remove(webSocket);
+                        return;
+                    }
+
+                    // ✅ Convert received bytes to string
+                    string message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+
+                    // ✅ Handle invitation messages
+                    if (message.StartsWith("new_invitation:"))
+                    {
+                        var userId = message.Split(":")[1];
+                        await BroadcastAsync($"new_invitation:{userId}"); // ✅ Notify recipient
                     }
                 }
             }
@@ -39,15 +50,15 @@ namespace ExpenseSplitterAPI.Services
             }
         }
 
-        // ✅ Convert this method to an INSTANCE method
+        // ✅ Broadcast message to all connected clients
         public async Task BroadcastAsync(string message)
         {
-            if (_sockets.Count == 0) return; // ✅ If no WebSocket connections, just return
+            if (_sockets.Count == 0) return;
 
             List<Task> tasks = new List<Task>();
-            foreach (var socket in _sockets) // ✅ Iterate directly over the list
+            foreach (var socket in _sockets)
             {
-                if (socket != null && socket.State == WebSocketState.Open) // ✅ Check if socket is not null
+                if (socket != null && socket.State == WebSocketState.Open)
                 {
                     var buffer = Encoding.UTF8.GetBytes(message);
                     var arraySegment = new ArraySegment<byte>(buffer);
@@ -55,9 +66,7 @@ namespace ExpenseSplitterAPI.Services
                 }
             }
 
-            await Task.WhenAll(tasks); // ✅ Execute all WebSocket sends in parallel
+            await Task.WhenAll(tasks);
         }
-
-
     }
 }
