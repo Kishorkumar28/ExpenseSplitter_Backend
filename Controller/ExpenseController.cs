@@ -65,7 +65,7 @@ namespace ExpenseSplitterAPI.Controllers
 
             if (expenses == null || expenses.Count == 0)
             {
-                return NotFound(new { message = "No expenses found for this group." });
+                return Ok(new List<ExpenseDto>());
             }
 
             return Ok(expenses);

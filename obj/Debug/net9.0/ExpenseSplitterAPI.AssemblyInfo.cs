@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ExpenseSplitterAPI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+04fd8434d4e035c204f7b991b429e17e3387f8ee")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5b27aef35e6c367ff39e0520cf7bfe1a5781ff42")]
 [assembly: System.Reflection.AssemblyProductAttribute("ExpenseSplitterAPI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ExpenseSplitterAPI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
