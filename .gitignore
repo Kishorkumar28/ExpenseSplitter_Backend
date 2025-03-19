@@ -1,0 +1,50 @@
+# 🔹 Ignore .NET build artifacts
+bin/
+obj/
+out/
+*.exe
+*.dll
+*.pdb
+*.cache
+*.vs/
+
+# 🔹 Ignore environment & config files
+appsettings.json
+appsettings.Development.json
+appsettings.Production.json
+appsettings.Staging.json
+secrets.json
+.env
+
+# 🔹 Ignore user-specific settings & IDE files
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.vsconfig
+
+# 🔹 Ignore dependency caches
+node_modules/
+packages/
+project.lock.json
+project.assets.json
+bundleconfig.json
+
+# 🔹 Ignore logs & debugging files
+*.log
+logs/
+logs/**
+
+# 🔹 Ignore EF Core migration files (optional, if regenerating them)
+Migrations/
+
+# 🔹 Ignore Docker build files (if using Docker)
+Dockerfile
+docker-compose.yml
+docker-compose.override.yml
+
+# 🔹 Ignore Publish & Deployment folders
+.publish/
+*.publishproj

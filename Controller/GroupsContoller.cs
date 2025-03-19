@@ -152,6 +152,27 @@ namespace ExpenseSplitterAPI.Controllers
             return BadRequest(new { message = "No outstanding debt found or settlement failed." });
         }
 
+        [HttpGet("{groupId}")]
+        public async Task<IActionResult> GetGroupDetails(int groupId) // 🔹 Use int, not Guid
+        {
+            var group = await _context.Groups
+                .Where(g => g.GroupId == groupId) // 🔹 Use GroupId (int)
+                .Select(g => new
+                {
+                    Id = g.GroupId, // 🔹 Ensure correct property name
+                    Name = g.Name,
+                })
+                .FirstOrDefaultAsync();
+
+            if (group == null)
+            {
+                return NotFound(new { message = "Group not found." });
+            }
+
+            return Ok(group);
+        }
+
+
         // ✅ DTO for debt settlement request
         public class SettleDebtRequest
         {
