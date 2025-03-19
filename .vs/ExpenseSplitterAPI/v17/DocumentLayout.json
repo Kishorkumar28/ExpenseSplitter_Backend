@@ -3,12 +3,24 @@
   "WorkspaceRootPath": "E:\\learning\\ph-2\\new-Capstone\\ExpenseSplitterAPI\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{B7B93940-1A76-443F-8923-1FDAB0CD28E6}|ExpenseSplitterAPI.csproj|e:\\learning\\ph-2\\new-capstone\\expensesplitterapi\\controller\\groupscontoller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B7B93940-1A76-443F-8923-1FDAB0CD28E6}|ExpenseSplitterAPI.csproj|solutionrelative:controller\\groupscontoller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{B7B93940-1A76-443F-8923-1FDAB0CD28E6}|ExpenseSplitterAPI.csproj|e:\\learning\\ph-2\\new-capstone\\expensesplitterapi\\services\\groupservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B7B93940-1A76-443F-8923-1FDAB0CD28E6}|ExpenseSplitterAPI.csproj|solutionrelative:services\\groupservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B7B93940-1A76-443F-8923-1FDAB0CD28E6}|ExpenseSplitterAPI.csproj|e:\\learning\\ph-2\\new-capstone\\expensesplitterapi\\models\\groupinvitation.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B7B93940-1A76-443F-8923-1FDAB0CD28E6}|ExpenseSplitterAPI.csproj|solutionrelative:models\\groupinvitation.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{B7B93940-1A76-443F-8923-1FDAB0CD28E6}|ExpenseSplitterAPI.csproj|e:\\learning\\ph-2\\new-capstone\\expensesplitterapi\\models\\group.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{B7B93940-1A76-443F-8923-1FDAB0CD28E6}|ExpenseSplitterAPI.csproj|solutionrelative:models\\group.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B7B93940-1A76-443F-8923-1FDAB0CD28E6}|ExpenseSplitterAPI.csproj|e:\\learning\\ph-2\\new-capstone\\expensesplitterapi\\data\\appdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B7B93940-1A76-443F-8923-1FDAB0CD28E6}|ExpenseSplitterAPI.csproj|solutionrelative:data\\appdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B7B93940-1A76-443F-8923-1FDAB0CD28E6}|ExpenseSplitterAPI.csproj|e:\\learning\\ph-2\\new-capstone\\expensesplitterapi\\controller\\groupscontoller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B7B93940-1A76-443F-8923-1FDAB0CD28E6}|ExpenseSplitterAPI.csproj|solutionrelative:controller\\groupscontoller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{B7B93940-1A76-443F-8923-1FDAB0CD28E6}|ExpenseSplitterAPI.csproj|e:\\learning\\ph-2\\new-capstone\\expensesplitterapi\\controller\\expensecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -42,24 +54,63 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Document",
               "DocumentIndex": 1,
+              "Title": "GroupInvitation.cs",
+              "DocumentMoniker": "E:\\learning\\ph-2\\new-Capstone\\ExpenseSplitterAPI\\Models\\GroupInvitation.cs",
+              "RelativeDocumentMoniker": "Models\\GroupInvitation.cs",
+              "ToolTip": "E:\\learning\\ph-2\\new-Capstone\\ExpenseSplitterAPI\\Models\\GroupInvitation.cs",
+              "RelativeToolTip": "Models\\GroupInvitation.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-19T12:09:12.836Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "AppDbContext.cs",
+              "DocumentMoniker": "E:\\learning\\ph-2\\new-Capstone\\ExpenseSplitterAPI\\Data\\AppDbContext.cs",
+              "RelativeDocumentMoniker": "Data\\AppDbContext.cs",
+              "ToolTip": "E:\\learning\\ph-2\\new-Capstone\\ExpenseSplitterAPI\\Data\\AppDbContext.cs",
+              "RelativeToolTip": "Data\\AppDbContext.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAASwEAAAAAyAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-19T12:07:10.318Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "GroupService.cs",
+              "DocumentMoniker": "E:\\learning\\ph-2\\new-Capstone\\ExpenseSplitterAPI\\Services\\GroupService.cs",
+              "RelativeDocumentMoniker": "Services\\GroupService.cs",
+              "ToolTip": "E:\\learning\\ph-2\\new-Capstone\\ExpenseSplitterAPI\\Services\\GroupService.cs",
+              "RelativeToolTip": "Services\\GroupService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAgAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-19T12:05:42.412Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
               "Title": "Group.cs",
               "DocumentMoniker": "E:\\learning\\ph-2\\new-Capstone\\ExpenseSplitterAPI\\Models\\Group.cs",
               "RelativeDocumentMoniker": "Models\\Group.cs",
               "ToolTip": "E:\\learning\\ph-2\\new-Capstone\\ExpenseSplitterAPI\\Models\\Group.cs",
               "RelativeToolTip": "Models\\Group.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAA1AAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAAYAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-03-19T11:11:46.028Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 6,
               "Title": "ExpenseDto.cs",
               "DocumentMoniker": "E:\\learning\\ph-2\\new-Capstone\\ExpenseSplitterAPI\\Models\\ExpenseDto.cs",
               "RelativeDocumentMoniker": "Models\\ExpenseDto.cs",
@@ -71,7 +122,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 7,
               "Title": "AuthService.cs",
               "DocumentMoniker": "E:\\learning\\ph-2\\new-Capstone\\ExpenseSplitterAPI\\Services\\AuthService.cs",
               "RelativeDocumentMoniker": "Services\\AuthService.cs",
@@ -83,7 +134,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 8,
               "Title": "AuthController.cs",
               "DocumentMoniker": "E:\\learning\\ph-2\\new-Capstone\\ExpenseSplitterAPI\\Controller\\AuthController.cs",
               "RelativeDocumentMoniker": "Controller\\AuthController.cs",
@@ -95,7 +146,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 10,
               "Title": "Debt.cs",
               "DocumentMoniker": "E:\\learning\\ph-2\\new-Capstone\\ExpenseSplitterAPI\\Models\\Debt.cs",
               "RelativeDocumentMoniker": "Models\\Debt.cs",
@@ -107,20 +158,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 4,
               "Title": "GroupsContoller.cs",
               "DocumentMoniker": "E:\\learning\\ph-2\\new-Capstone\\ExpenseSplitterAPI\\Controller\\GroupsContoller.cs",
               "RelativeDocumentMoniker": "Controller\\GroupsContoller.cs",
               "ToolTip": "E:\\learning\\ph-2\\new-Capstone\\ExpenseSplitterAPI\\Controller\\GroupsContoller.cs",
               "RelativeToolTip": "Controller\\GroupsContoller.cs",
-              "ViewState": "AgIAAJcAAAAAAAAAAADwv6sAAAAdAAAAAAAAAA==",
+              "ViewState": "AgIAANAAAAAAAAAAAAAUwOoAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-03-17T17:50:50.533Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 5,
               "Title": "ExpenseController.cs",
               "DocumentMoniker": "E:\\learning\\ph-2\\new-Capstone\\ExpenseSplitterAPI\\Controller\\ExpenseController.cs",
               "RelativeDocumentMoniker": "Controller\\ExpenseController.cs",
@@ -128,12 +179,11 @@
               "RelativeToolTip": "Controller\\ExpenseController.cs",
               "ViewState": "AgIAAHIAAAAAAAAAAAAowEMAAAAwAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-17T17:50:47.834Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-03-17T17:50:47.834Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 9,
               "Title": "ExpenseService.cs",
               "DocumentMoniker": "E:\\learning\\ph-2\\new-Capstone\\ExpenseSplitterAPI\\Services\\ExpenseService.cs",
               "RelativeDocumentMoniker": "Services\\ExpenseService.cs",

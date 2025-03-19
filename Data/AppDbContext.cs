@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ExpenseSplitterApp.Models;
 using ExpenseSplitterAPI.Models;
+using ExpenseSplitterAPI.Services;
 
 namespace ExpenseSplitterAPI.Data
 {
@@ -14,6 +15,9 @@ namespace ExpenseSplitterAPI.Data
         public DbSet<UserGroup> UserGroups { get; set; }
         public DbSet<Debt> Debts { get; set; }
         public DbSet<ExpenseParticipant> ExpenseParticipants { get; set; }
+
+        public DbSet<GroupInvitation> GroupInvitations { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -50,6 +54,15 @@ namespace ExpenseSplitterAPI.Data
             modelBuilder.Entity<Debt>()
                 .Property(d => d.Amount)
                 .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<GroupInvitation>()
+        .HasKey(i => i.Id);
+
+            modelBuilder.Entity<GroupInvitation>()
+                .HasOne(i => i.Group)
+                .WithMany()
+                .HasForeignKey(i => i.GroupId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

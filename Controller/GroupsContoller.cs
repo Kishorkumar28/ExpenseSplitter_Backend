@@ -181,6 +181,66 @@ namespace ExpenseSplitterAPI.Controllers
             public decimal Amount { get; set; }
         }
 
+        [HttpPost("{groupId}/invite")]
+        public async Task<IActionResult> InviteUserToGroup(int groupId, [FromBody] InviteUserRequest request)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized(new { message = "User ID not found." });
+
+            if (!int.TryParse(userIdClaim.Value, out int invitingUserId)) return Unauthorized(new { message = "Invalid User ID." });
+
+            var success = await _groupService.InviteUserToGroup(invitingUserId, request.InvitedUserId, groupId);
+
+            return success ? Ok(new { message = "User invited successfully!" }) : BadRequest(new { message = "Invitation failed." });
+        }
+
+        [HttpGet("invitations")]
+        public async Task<IActionResult> GetUserInvitations()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized(new { message = "User ID not found." });
+
+            if (!int.TryParse(userIdClaim.Value, out int userId)) return Unauthorized(new { message = "Invalid User ID." });
+
+            var invitations = await _groupService.GetUserInvitations(userId);
+
+            return Ok(invitations);
+        }
+
+        [HttpPost("accept/{inviteId}")]
+        public async Task<IActionResult> AcceptInvitation(int inviteId)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized(new { message = "User ID not found." });
+
+            if (!int.TryParse(userIdClaim.Value, out int userId)) return Unauthorized(new { message = "Invalid User ID." });
+
+            var success = await _groupService.AcceptInvitation(userId, inviteId);
+
+            return success ? Ok(new { message = "Successfully joined the group!" }) : BadRequest(new { message = "Failed to join the group." });
+        }
+
+        [HttpPost("reject/{inviteId}")]
+        public async Task<IActionResult> RejectInvitation(int inviteId)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized(new { message = "User ID not found." });
+
+            if (!int.TryParse(userIdClaim.Value, out int userId)) return Unauthorized(new { message = "Invalid User ID." });
+
+            var success = await _groupService.RejectInvitation(userId, inviteId);
+
+            return success ? Ok(new { message = "Invitation rejected." }) : BadRequest(new { message = "Failed to reject invitation." });
+        }
+
+
+        // DTO for inviting a user
+        public class InviteUserRequest
+        {
+            public int InvitedUserId { get; set; }
+        }
+
+
     }
 
     // ✅ DTO for Creating a Group
